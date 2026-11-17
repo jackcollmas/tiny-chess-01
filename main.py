@@ -21,9 +21,10 @@ import urllib.request
 
 ENV_URL = os.environ.get("MAKEFUN_ENV_URL") or sys.exit("MAKEFUN_ENV_URL is not set")
 
-# Piece values by FEN letter, case-insensitive. The king is never captured;
-# its 100 only ranks it last as the moving piece.
+# Piece values for material evaluation
 VALUE = {"p": 1, "n": 3, "b": 3, "r": 5, "q": 9, "k": 100}
+# Position bonus: center control
+CENTER = {"d4": 0.1, "e4": 0.1, "d5": 0.1, "e5": 0.1}
 
 
 def post(path, body):
@@ -55,7 +56,7 @@ def board_of(fen):
 
 
 def choose(fen, legal):
-    """The legal UCI move that takes the most, with the fixed tie-break."""
+    """The legal UCI move that takes the most, with positional tie-break."""
     board = board_of(fen)
 
     def rank(move):
@@ -65,7 +66,9 @@ def choose(fen, legal):
             victim = "p"  # en passant: the pawn taken is beside the target
         taken = VALUE[victim.lower()] if victim else 0
         promo = VALUE[move[4]] if len(move) == 5 else 0
-        return (-taken, -promo, VALUE[mover], move)
+        # Favor center control in non-capture moves
+        pos_bonus = CENTER.get(move[2:4], 0) if not victim else 0
+        return (-taken, -promo, VALUE[mover], -pos_bonus, move)
 
     return min(legal, key=rank)
 
