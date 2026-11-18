@@ -15,32 +15,29 @@ def bd(f):
    if x.isdigit():c+=int(x)
    else:b["abcdefgh"[c]+str(8-i)]=x;c+=1
  return b
-def ev(b,f):
- s=0;w=f.split()[1]=="w"
+def ev(b,w):
+ s=0
  for q,p in b.items():
-  r,c=int(q[1])-1,"abcdefgh".index(q[0]);i=r*8+c
-  v=V[p.lower()];t=P.get(p.lower(),[0]*64)
+  r,c=int(q[1])-1,"abcdefgh".index(q[0]);i=r*8+c;v=V[p.lower()];t=P.get(p.lower(),[0]*64)
   if p.isupper():s+=v+t[i]
   else:s-=v+t[63-i]
  return s if w else-s
-def sm(b,m,f):
+def mv(b,m,w):
  n=b.copy();p=n.get(m[:2],"")
  if m[2:4]in n:del n[m[2:4]]
- n[m[2:4]]=m[4].upper()if len(m)==5 and f.split()[1]=="w"else(m[4].lower()if len(m)==5 else p)
+ n[m[2:4]]=m[4].upper()if len(m)==5 and w else(m[4].lower()if len(m)==5 else p)
  if m[:2]in n:del n[m[:2]]
- if p.lower()=="p"and m[0]!=m[2]:
-  e=m[2]+m[1]
-  if e in n and n[e].lower()=="p":del n[e]
+ if p.lower()=="p"and m[0]!=m[2]and m[2:4]not in b:
+  ep=m[2]+m[1]
+  if ep in n:del n[ep]
  return n
-def mf(b,w):
- r=["".join(b.get(chr(97+j)+str(8-i)," ")for j in range(8))for i in range(8)]
- return"/".join("".join(str(len(list(g)))if k else"".join(g)for k,g in __import__("itertools").groupby(x,lambda y:y==" "))for x in r)+" "+("b"if w else"w")+" - - 0 1"
-def rate(b,f,m):
- n=sm(b,m,f);g=mf(n,f.split()[1]=="w");cap=V.get(b.get(m[2:4],"x").lower(),0);promo=900 if len(m)>4 else 0
- return-ev(n,g)+cap*10+promo*10
+def rate(b,w,m):
+ n=mv(b,m,w);cap=V.get(b.get(m[2:4],"x").lower(),0);promo=900 if len(m)>4 else 0
+ return ev(n,not w)+cap*10+promo*10
 while True:
  g=post("/game",{})
  if g["status"]=="done":break
  while g["status"]=="your_move":
-  b=bd(g["fen"]);m=max(g["legal_moves"],key=lambda x:rate(b,g["fen"],x))
+  b=bd(g["fen"]);w=g["fen"].split()[1]=="w"
+  m=max(g["legal_moves"],key=lambda x:rate(b,w,x))
   g=post("/move",{"game":g["game"],"move":m})
