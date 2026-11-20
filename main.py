@@ -26,14 +26,19 @@ def mv(b,m,w):
  n=b.copy();p=n.get(m[:2],"")
  if m[2:4]in n:del n[m[2:4]]
  n[m[2:4]]=m[4].upper()if len(m)==5 and w else(m[4].lower()if len(m)==5 else p)
- if m[:2]in n:del n[m[:2]]
- if p.lower()=="p"and m[0]!=m[2]and m[2:4]not in b:
+ del n[m[:2]]
+ if p.lower()=="p"and m[0]!=m[2]:
   ep=m[2]+m[1]
-  if ep in n:del n[ep]
+  if ep in n and n[ep].lower()=="p":del n[ep]
+ if p.lower()=="k":
+  if m=="e1g1"and"h1"in n:n["f1"]=n.pop("h1")
+  elif m=="e1c1"and"a1"in n:n["d1"]=n.pop("a1")
+  elif m=="e8g8"and"h8"in n:n["f8"]=n.pop("h8")
+  elif m=="e8c8"and"a8"in n:n["d8"]=n.pop("a8")
  return n
 def rate(b,w,m):
  n=mv(b,m,w);cap=V.get(b.get(m[2:4],"x").lower(),0);promo=900 if len(m)>4 else 0
- return ev(n,not w)+cap*10+promo*10
+ return ev(n,w)+cap*10+promo*10
 while True:
  g=post("/game",{})
  if g["status"]=="done":break
